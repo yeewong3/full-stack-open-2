@@ -1,0 +1,6 @@
+# package
+node_modules
+yarn.lock
+
+# Testing
+requests
