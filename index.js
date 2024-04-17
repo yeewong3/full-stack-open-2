@@ -30,6 +30,16 @@ app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
 
+app.get('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.filter(person => person.id === id);
+
+  if (person.length < 1) {
+    res.status(404).send({ error: `id ${id} not found` })
+  } else {
+    res.json(person)
+  }
+})
 
 app.get('/info', (req, res) => {
   const now = new Date();
@@ -37,6 +47,37 @@ app.get('/info', (req, res) => {
   const context = `Phonebook has info for ${persons.length} ${persons.length > 1 ? "people" : "person"} <br/> ${now.toString()}`
 
   res.send(context)
+})
+
+const generateRandomID = () => {
+  const maxNumber = 9999999;
+  return Math.floor(Math.random() * maxNumber);
+}
+
+app.post('/api/persons', (req, res) => {
+  const body = req.body;
+  if (!body.name || !body.number) {
+    return res.status(400).json({
+      error: 'name or number missing'
+    })
+  }
+  
+  const isNameExist = persons.find((person) => person.name === body.name) ? true : false;
+  if (isNameExist) {
+    return res.status(400).json({
+      error: 'name must be unique'
+    })
+  }
+
+  const newPerson = {
+    id: generateRandomID(),
+    name: body.name,
+    number: body.number,
+  };
+
+  persons = persons.concat(newPerson);
+
+  res.json(newPerson);
 })
 
 const PORT = 3001
