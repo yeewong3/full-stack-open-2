@@ -40,7 +40,9 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :d
   skip: function (req, res) { return req.method !== "POST" }
 }));
 
-app.use(cors())
+app.use(cors());
+
+app.use(express.static('dist'))
 
 // API
 app.get('/api/persons', (request, response) => {
