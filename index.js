@@ -1,5 +1,7 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const morgan = require('morgan');
+
+const app = express();
 
 let persons = [
   {
@@ -24,8 +26,20 @@ let persons = [
   }
 ]
 
-app.use(express.json())
+app.use(express.json());
 
+app.use(morgan('tiny', {
+  skip: function (req, res) { return req.method === "POST" }
+}));
+
+// log req body when creating new person
+morgan.token('data', function (req, res) { return JSON.stringify(req.body) });
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data', {
+  skip: function (req, res) { return req.method !== "POST" }
+}));
+
+// API
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
@@ -61,7 +75,7 @@ app.post('/api/persons', (req, res) => {
       error: 'name or number missing'
     })
   }
-  
+
   const isNameExist = persons.find((person) => person.name === body.name) ? true : false;
   if (isNameExist) {
     return res.status(400).json({
