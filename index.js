@@ -27,8 +27,10 @@ app.use(express.static('dist'))
 
 
 // API
-app.get('/api/persons', (request, response) => {
-  Person.find({}).then(persons => { response.json(persons) })
+app.get('/api/persons', (request, response, next) => {
+  Person.find({})
+    .then(persons => { response.json(persons) })
+    .catch(err => next(err))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -58,7 +60,7 @@ const generateRandomID = () => {
   return Math.floor(Math.random() * maxNumber);
 }*/
 
-app.post('/api/persons', async (req, res) => {
+app.post('/api/persons', async (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -82,10 +84,12 @@ app.post('/api/persons', async (req, res) => {
     number: body.number,
   });
 
-  newPerson.save().then(result => {
-    console.log(`New person ${body.name} saved`);
-    res.json(result);
-  })
+  newPerson.save()
+    .then(result => {
+      console.log(`New person ${body.name} saved`);
+      res.json(result);
+    })
+    .catch(err => next(err))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -102,7 +106,10 @@ app.put('/api/persons/:id', (req, res, next) => {
     number: body.number,
   }
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    req.params.id,
+    person,
+    { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       res.json(updatedPerson);
     })
@@ -116,6 +123,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
