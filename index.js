@@ -104,14 +104,15 @@ app.put('/api/persons/:id', (req, res, next) => {
   const person = {
     name: body.name,
     number: body.number,
-  }
+  };
 
   Person.findByIdAndUpdate(
     req.params.id,
     person,
-    { new: true, runValidators: true, context: 'query' })
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then(updatedPerson => {
-      res.json(updatedPerson);
+      res.json(updatedPerson)
     })
     .catch(err => next(err))
 })
@@ -119,20 +120,20 @@ app.put('/api/persons/:id', (req, res, next) => {
 // Middleware for error
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.error(error.message);
 
   if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
+    return response.status(400).send({ error: 'malformatted id' });
   } else if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message })
+    return response.status(400).json({ error: error.message });
   }
 
-  next(error)
-}
+  next(error);
+};
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});
